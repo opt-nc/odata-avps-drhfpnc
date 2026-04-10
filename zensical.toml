@@ -1,0 +1,18 @@
+[project]
+
+site_name = "AVPS OPT-NC"
+site_description = "Avis de Vacances de Poste de l'Office des Postes et Télécommunications de Nouvelle-Calédonie"
+site_author = "OPT-NC"
+
+copyright = """
+Copyright &copy; 2026 OPT-NC
+"""
+
+# Documentation source directory
+docs_dir = "data"
+
+# Build output directory
+site_dir = "site"
+
+[project.repo]
+url = "https://github.com/opt-nc/odata-avps-drhfpnc"
