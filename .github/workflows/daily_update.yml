@@ -1,0 +1,51 @@
+name: Daily Update
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Run script
+        run: |
+          uv run src/filter_opt_avp.py
+        env:
+          TORCH_DEVICE: cpu
+          INFERENCE_DEVICE: cpu
+
+      - name: Clean up temporary files
+        run: |
+          # Supprimer les PDFs temporaires
+          rm -f temp_*.pdf
+          rm -rf temp_out/ temp_pdfs/
+          echo "Cleaned up temporary files"
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Ajouter les nouveaux fichiers CSV et Markdown
+          git add data/*.csv data/*.md
+          
+          # Supprimer les fichiers markdown qui ont été supprimés (anciens AVP)
+          git add -u data/*.md
+          
+          # Vérifier s'il y a des changements à commiter
+          if [ -n "$(git status --porcelain data/)" ]; then
+            git commit -m "chore: daily data update - CSV and Markdown files [skip ci]"
+            git push
+          else
+            echo "No changes to commit"
+          fi
