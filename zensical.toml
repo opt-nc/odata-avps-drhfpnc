@@ -23,7 +23,7 @@ logo = "assets/logo.png"
 favicon = "assets/logo.png"
 
 # Icônes du site
-icon.repo = "lucide/github"
+icon.repo = "material/github"
 
 # Options de navigation et recherche
 features = [
@@ -39,29 +39,29 @@ features = [
 scheme = "slate"
 primary = "indigo"
 accent = "indigo"
-toggle.icon = "lucide/sun"
+toggle.icon = "material/brightness-4"
 toggle.name = "Passer au mode clair"
 
 [[project.theme.palette]]
 scheme = "default"
 primary = "indigo"
 accent = "indigo"
-toggle.icon = "lucide/moon"
+toggle.icon = "material/brightness-7"
 toggle.name = "Passer au mode sombre"
 
 # Liens sociaux et institutionnels
 [[project.extra.social]]
-icon = "lucide/github"
+icon = "material/github"
 link = "https://github.com/opt-nc/avps"
 name = "Code source sur GitHub"
 
 [[project.extra.social]]
-icon = "lucide/rss"
+icon = "material/rss"
 link = "https://opt-nc.github.io/avps/feed.xml"
 name = "Flux RSS des offres"
 
 [[project.extra.social]]
-icon = "lucide/globe"
+icon = "material/earth"
 link = "https://office.opt.nc/fr/emploi-et-carriere/postuler-lopt-nc/avp"
 name = "Site Institutionnel OPT-NC"
 
