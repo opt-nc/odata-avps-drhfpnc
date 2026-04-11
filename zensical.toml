@@ -56,6 +56,15 @@ link = "https://github.com/opt-nc/avps"
 name = "Code source sur GitHub"
 
 [[project.extra.social]]
+icon = "lucide/rss"
+link = "https://opt-nc.github.io/avps/feed.xml"
+name = "Flux RSS des offres"
+
+[[project.extra.social]]
 icon = "lucide/globe"
 link = "https://office.opt.nc/fr/emploi-et-carriere/postuler-lopt-nc/avp"
 name = "Site Institutionnel OPT-NC"
+
+# --- CUSTOM CSS POUR LES BADGES ---
+extra_css = ["assets/custom.css"]
+

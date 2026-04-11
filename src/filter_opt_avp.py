@@ -348,6 +348,7 @@ Cette page recense les avis de vacances de poste publiés par l'OPT-NC, issus du
         lieu_travail = row.get('lieu_travail', '')
         date_a_pourvoir_libelle = row.get('date_a_pourvoir_libelle', '')
         date_cloture = row.get('date_cloture', '')
+        date_publication = row.get('date_publication_avp', '')
         corps_grade = row.get('libelle_corps_grade', '')
         
         # Limiter la longueur du libellé pour le titre
@@ -360,8 +361,33 @@ Cette page recense les avis de vacances de poste publiés par l'OPT-NC, issus du
         if str(date_a_pourvoir_libelle).upper() == "IMMEDIATEMENT":
             badge_dispo = " 🟢"
         
-        # Créer une carte admonition
-        index_content += f'\n!!! info "{numero} - {libelle_court}{badge_dispo}"\n'
+        # --- CALCUL DES NOUVEAUX BADGES ---
+        badges_info = ""
+        now = pd.Timestamp.now()
+        
+        # Badge NOUVEAU (si publié il y a moins de 3 jours)
+        if pd.notna(date_publication):
+            try:
+                pub_date = pd.to_datetime(date_publication)
+                if (now - pub_date).days <= 3:
+                    badges_info += ' <span class="md-tag md-tag--new">NOUVEAU</span>'
+            except:
+                pass
+                
+        # Badge COMPTE À REBOURS (jours restants)
+        if pd.notna(date_cloture):
+            try:
+                cloture_date = pd.to_datetime(date_cloture)
+                jours_restants = (cloture_date - now).days
+                if jours_restants <= 7 and jours_restants >= 0:
+                    badges_info += f' <span class="md-tag md-tag--urgent">J-{jours_restants}</span>'
+                elif jours_restants < 0:
+                    badges_info += ' <span class="md-tag md-tag--closed">CLOS</span>'
+            except:
+                pass
+        
+        # Créer une carte admonition avec les badges
+        index_content += f'\n!!! info "{numero} - {libelle_court}{badge_dispo}{badges_info}"\n'
         
         # Direction
         if pd.notna(direction_libelle) and direction_libelle:
@@ -427,7 +453,94 @@ Les données sont mises à jour quotidiennement de manière automatique.
     with open("data/index.md", "w", encoding="utf-8") as f:
         f.write(index_content)
     
+    # --- GÉNÉRATION DU FLUX RSS ---
+    try:
+        generate_rss_feed(df)
+    except Exception as e:
+        print(f"⚠️ Erreur lors de la génération du flux RSS: {e}")
+    
+    # --- GÉNÉRATION DU SITEMAP ---
+    try:
+        generate_sitemap(df)
+    except Exception as e:
+        print(f"⚠️ Erreur lors de la génération du sitemap: {e}")
+    
     print(f"✅ Fichier index.md généré avec {len(df)} AVPs")
+
+def generate_rss_feed(df):
+    """Génère un flux RSS simple pour les AVPs."""
+    import datetime
+    
+    rss = '<?xml version="1.0" encoding="UTF-8" ?>\n'
+    rss += '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">\n'
+    rss += '<channel>\n'
+    rss += '  <title>AVPS OPT-NC - Nouvelles offres</title>\n'
+    rss += '  <link>https://opt-nc.github.io/avps/</link>\n'
+    rss += '  <description>Derniers avis de vacances de poste publiés par l\'OPT-NC</description>\n'
+    rss += '  <language>fr</language>\n'
+    rss += f'  <lastBuildDate>{datetime.datetime.now().strftime("%a, %d %b %Y %H:%M:%S +1100")}</lastBuildDate>\n'
+    
+    # Trier par date de publication décroissante
+    df_sorted = df.sort_values('date_publication_avp', ascending=False).head(20)
+    
+    for _, row in df_sorted.iterrows():
+        numero = row.get('numero_avp', '')
+        libelle = row.get('libelle_emploi', '')
+        direction = row.get('libelle_direction', '')
+        date_pub = row.get('date_publication_avp', '')
+        
+        rss += '  <item>\n'
+        rss += f'    <title>{numero} - {libelle}</title>\n'
+        rss += f'    <link>https://opt-nc.github.io/avps/{numero}/</link>\n'
+        rss += f'    <guid isPermaLink="true">https://opt-nc.github.io/avps/{numero}/</guid>\n'
+        rss += f'    <description><![CDATA[Poste à la direction {direction}. Consultez les détails sur le site.]]></description>\n'
+        if pd.notna(date_pub):
+            try:
+                pub_obj = pd.to_datetime(date_pub)
+                rss += f'    <pubDate>{pub_obj.strftime("%a, %d %b %Y %H:%M:%S +1100")}</pubDate>\n'
+            except:
+                pass
+        rss += '  <category>Emploi</category>\n'
+        rss += '  </item>\n'
+        
+    rss += '</channel>\n'
+    rss += '</rss>'
+    
+    with open("data/feed.xml", "w", encoding="utf-8") as f:
+        f.write(rss)
+    print("✅ Flux RSS généré : data/feed.xml")
+
+def generate_sitemap(df):
+    """Génère un fichier sitemap.xml pour le SEO."""
+    import datetime
+    today = datetime.datetime.now().strftime("%Y-%m-%d")
+    
+    sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    sitemap += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    
+    # Page d'accueil
+    sitemap += '  <url>\n'
+    sitemap += '    <loc>https://opt-nc.github.io/avps/</loc>\n'
+    sitemap += f'    <lastmod>{today}</lastmod>\n'
+    sitemap += '    <changefreq>daily</changefreq>\n'
+    sitemap += '    <priority>1.0</priority>\n'
+    sitemap += '  </url>\n'
+    
+    # Chaque AVP
+    for _, row in df.iterrows():
+        numero = row.get('numero_avp', '')
+        sitemap += '  <url>\n'
+        sitemap += f'    <loc>https://opt-nc.github.io/avps/{numero}/</loc>\n'
+        sitemap += f'    <lastmod>{today}</lastmod>\n'
+        sitemap += '    <changefreq>weekly</changefreq>\n'
+        sitemap += '    <priority>0.8</priority>\n'
+        sitemap += '  </url>\n'
+        
+    sitemap += '</urlset>'
+    
+    with open("data/sitemap.xml", "w", encoding="utf-8") as f:
+        f.write(sitemap)
+    print("✅ Sitemap généré : data/sitemap.xml")
 
 if __name__ == "__main__":
     main()

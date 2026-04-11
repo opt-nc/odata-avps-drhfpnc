@@ -1,0 +1,40 @@
+/* Styles pour les badges AVPS */
+.md-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7em;
+    font-weight: bold;
+    margin-left: 10px;
+    vertical-align: middle;
+    text-transform: uppercase;
+}
+
+/* Badge NOUVEAU */
+.md-tag--new {
+    background-color: #2e7d32; /* Vert foncé */
+    color: white;
+}
+
+/* Badge URGENT (J-x) */
+.md-tag--urgent {
+    background-color: #f57c00; /* Orange */
+    color: white;
+}
+
+/* Badge CLOS */
+.md-tag--closed {
+    background-color: #c62828; /* Rouge */
+    color: white;
+}
+
+/* Animation de pulsation pour le badge Nouveau */
+.md-tag--new {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.9; }
+    100% { transform: scale(1); opacity: 1; }
+}
