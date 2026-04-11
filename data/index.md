@@ -4,7 +4,7 @@ Bienvenue sur le site des **Avis de Vacances de Poste** de l'Office des Postes e
 
 ## 📋 Postes disponibles
 
-Cette page recense les avis de vacances de poste publiés par l'OPT-NC, issus de [data.gouv.nc](https://data.gouv.nc).
+Cette page recense les avis de vacances de poste publiés par l'OPT-NC, issus du dataset [avis-de-vacances-de-poste-avp-drhfpnc](https://data.gouv.nc/explore/dataset/avis-de-vacances-de-poste-avp-drhfpnc/information) disponible sur data.gouv.nc.
 
 ### Liste des AVP disponibles
 

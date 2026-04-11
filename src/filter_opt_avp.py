@@ -46,7 +46,7 @@ def process_pdfs_to_markdown(df, data_dir="data"):
             artifact_dict=model_dict,
             config={
                 "disable_ocr": True, # Accélère grandement sur CPU pour les PDF natifs
-                "disable_image_extraction": True # Gagne du temps sur CPU
+                "disable_image_extraction": False # Activer l'extraction d'images
             }
         )
         
@@ -80,14 +80,15 @@ def process_pdfs_to_markdown(df, data_dir="data"):
             # 2. Conversion avec marker
             rendered = converter(temp_pdf)
             
-            # 3. Sauvegarde du Markdown
-            with open(final_md_path, "w", encoding="utf-8") as f:
-                f.write(rendered.markdown)
-                
+            # 3. Sauvegarde du Markdown et des images
+            output_files = save_output(rendered, final_md_path, data_dir)
+            
             # Nettoyage
             if os.path.exists(temp_pdf):
                 os.remove(temp_pdf)
             print(f"    Généré avec succès : {final_md_path}")
+            if output_files.get('images'):
+                print(f"    Images extraites : {len(output_files['images'])}")
                 
         except Exception as e:
             print(f"    Erreur pour {numero}: {e}")
@@ -189,6 +190,34 @@ def main():
     
     # Génération de l'index.md
     generate_index_md(df_opt)
+    
+    # Génération du fichier de build info
+    generate_build_info()
+
+def generate_build_info():
+    """Génère un fichier avec les infos de build (date et commit)."""
+    import subprocess
+    from datetime import datetime
+    import pytz
+    
+    # Obtenir le commit SHA
+    try:
+        commit_sha = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'], 
+                                            stderr=subprocess.DEVNULL).decode().strip()
+    except:
+        commit_sha = "unknown"
+    
+    # Date actuelle en timezone Nouméa
+    noumea_tz = pytz.timezone('Pacific/Noumea')
+    now = datetime.now(noumea_tz)
+    date_str = now.strftime("%d/%m/%Y à %H:%M")
+    
+    # Créer le fichier build_info.txt
+    with open("data/build_info.txt", "w", encoding="utf-8") as f:
+        f.write(f"{commit_sha}\n")
+        f.write(f"{date_str}\n")
+    
+    print(f"✅ Build info: commit {commit_sha}, date {date_str}")
 
 def generate_index_md(df):
     """Génère un fichier index.md avec la liste des AVPs."""
@@ -200,7 +229,7 @@ Bienvenue sur le site des **Avis de Vacances de Poste** de l'Office des Postes e
 
 ## 📋 Postes disponibles
 
-Cette page recense les avis de vacances de poste publiés par l'OPT-NC, issus de [data.gouv.nc](https://data.gouv.nc).
+Cette page recense les avis de vacances de poste publiés par l'OPT-NC, issus du dataset [avis-de-vacances-de-poste-avp-drhfpnc](https://data.gouv.nc/explore/dataset/avis-de-vacances-de-poste-avp-drhfpnc/information) disponible sur data.gouv.nc.
 
 ### Liste des AVP disponibles
 
