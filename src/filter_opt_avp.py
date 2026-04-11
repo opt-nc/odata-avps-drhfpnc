@@ -254,13 +254,55 @@ def generate_index_md(df):
     corps_counts = df['libelle_corps_grade'].value_counts()
     
     # Générer le graphique Mermaid (pie chart)
-    mermaid_chart = "```mermaid\npie title Répartition des postes par corps/grade\n"
+    mermaid_pie = "```mermaid\npie title Répartition des postes par corps/grade\n"
     for corps, count in corps_counts.items():
         if pd.notna(corps):
             # Capitaliser le premier caractère pour un meilleur rendu
             corps_label = str(corps).capitalize()
-            mermaid_chart += f'    "{corps_label}" : {count}\n'
-    mermaid_chart += "```"
+            mermaid_pie += f'    "{corps_label}" : {count}\n'
+    mermaid_pie += "```"
+    
+    # Générer le diagramme Gantt
+    gantt_chart = "```mermaid\ngantt\n"
+    gantt_chart += "    title Calendrier des dates de clôture\n"
+    gantt_chart += "    dateFormat YYYY-MM-DD\n"
+    gantt_chart += "    axisFormat %d/%m\n"
+    gantt_chart += "    \n"
+    gantt_chart += "    section Postes disponibles\n"
+    
+    # Trier par date de clôture
+    df_sorted_gantt = df.sort_values('date_cloture') if 'date_cloture' in df.columns else df
+    
+    for idx, row in df_sorted_gantt.iterrows():
+        numero = row.get('numero', '')
+        libelle = row.get('libelle_poste', 'Poste')
+        date_mise_en_ligne = row.get('date_mis_en_ligne', '')
+        date_cloture = row.get('date_cloture', '')
+        
+        if pd.notna(date_mise_en_ligne) and pd.notna(date_cloture):
+            # Limiter le libellé à 45 caractères
+            libelle_court = libelle[:45] + "..." if len(libelle) > 45 else libelle
+            
+            try:
+                date_debut = pd.to_datetime(date_mise_en_ligne).strftime('%Y-%m-%d')
+                date_fin = pd.to_datetime(date_cloture).strftime('%Y-%m-%d')
+                
+                # Calculer les jours restants
+                jours_restants = (pd.to_datetime(date_cloture).replace(tzinfo=None) - now.replace(tzinfo=None)).days
+                
+                # Déterminer le statut selon l'urgence
+                if jours_restants < 3:
+                    status = "crit"  # Rouge - urgent
+                elif jours_restants < 7:
+                    status = "active"  # Bleu - attention
+                else:
+                    status = "done"  # Vert - ok
+                
+                gantt_chart += f"    {libelle_court} ({numero})    :{status}, task{idx}, {date_debut}, {date_fin}\n"
+            except Exception as e:
+                print(f"    Erreur Gantt pour {numero}: {e}")
+    
+    gantt_chart += "```"
     
     index_content = f"""# AVPS OPT-NC
 
@@ -274,7 +316,13 @@ Bienvenue sur le site des **Avis de Vacances de Poste** de l'Office des Postes e
 
 ### 📈 Répartition par corps/grade
 
-{mermaid_chart}
+{mermaid_pie}
+
+### 📅 Timeline des dates de clôture
+
+{gantt_chart}
+
+> 💡 **Légende** : 🟢 Vert = Plus de 7 jours | 🔵 Bleu = 3 à 7 jours | 🔴 Rouge = Moins de 3 jours (urgent !)
 
 ---
 
