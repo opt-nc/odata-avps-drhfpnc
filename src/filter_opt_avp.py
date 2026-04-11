@@ -234,9 +234,26 @@ def generate_index_md(df):
     """Génère un fichier index.md avec la liste des AVPs."""
     print("Génération de index.md...")
     
-    index_content = """# AVPS OPT-NC
+    # Calculer les statistiques
+    from datetime import datetime
+    import pytz
+    
+    nb_postes = len(df)
+    noumea_tz = pytz.timezone('Pacific/Noumea')
+    now = datetime.now(noumea_tz)
+    date_mise_a_jour = now.strftime("%d/%m/%Y à %Hh%M")
+    
+    index_content = f"""# AVPS OPT-NC
 
 Bienvenue sur le site des **Avis de Vacances de Poste** de l'Office des Postes et Télécommunications de Nouvelle-Calédonie.
+
+## 📊 En bref
+
+- **{nb_postes}** poste{'s' if nb_postes > 1 else ''} disponible{'s' if nb_postes > 1 else ''} actuellement
+- 📅 Dernière mise à jour : **{date_mise_a_jour}** (Nouméa)
+- 🔄 Prochaine mise à jour : demain à 00h00 (automatique)
+
+---
 
 ## 📋 Postes disponibles
 
@@ -255,18 +272,77 @@ Cette page recense les avis de vacances de poste publiés par l'OPT-NC, issus du
         numero = row.get('numero', '')
         libelle = row.get('libelle_poste', 'Poste disponible')
         url_pdf = row.get('url_pdf', '')
+        direction_acronyme = row.get('direction_acronyme', '')
+        direction_libelle = row.get('direction_libelle', '')
+        lieu_travail = row.get('lieu_travail', '')
+        date_a_pourvoir_libelle = row.get('date_a_pourvoir_libelle', '')
+        date_cloture = row.get('date_cloture', '')
+        corps_grade = row.get('libelle_corps_grade', '')
         
-        # Limiter la longueur du libellé
+        # Limiter la longueur du libellé pour le titre
+        libelle_court = libelle
         if len(libelle) > 80:
-            libelle = libelle[:77] + "..."
+            libelle_court = libelle[:77] + "..."
         
-        # Ajouter le lien vers la page et vers le PDF
+        # Badge de disponibilité dans le titre
+        badge_dispo = ""
+        if str(date_a_pourvoir_libelle).upper() == "IMMEDIATEMENT":
+            badge_dispo = " 🟢"
+        
+        # Créer une carte admonition
+        index_content += f'\n!!! info "{numero} - {libelle_court}{badge_dispo}"\n'
+        
+        # Direction
+        if pd.notna(direction_libelle) and direction_libelle:
+            index_content += f"    **🏢 Direction :** {direction_libelle}"
+            if pd.notna(direction_acronyme) and direction_acronyme:
+                index_content += f" ({direction_acronyme})"
+            index_content += "  \n"
+        elif pd.notna(direction_acronyme) and direction_acronyme:
+            index_content += f"    **🏢 Direction :** {direction_acronyme}  \n"
+        
+        # Lieu
+        if pd.notna(lieu_travail) and lieu_travail:
+            index_content += f"    **📍 Lieu :** {lieu_travail}  \n"
+        
+        # Date limite
+        if pd.notna(date_cloture) and date_cloture:
+            try:
+                date_obj = pd.to_datetime(date_cloture)
+                date_formatee = date_obj.strftime("%d/%m/%Y")
+                index_content += f"    **📅 Date limite :** {date_formatee}  \n"
+            except:
+                pass
+        
+        # Corps/Grade
+        if pd.notna(corps_grade) and corps_grade:
+            index_content += f"    **💼 Corps :** {corps_grade.capitalize()}  \n"
+        
+        # Disponibilité
+        if str(date_a_pourvoir_libelle).upper() == "IMMEDIATEMENT":
+            index_content += f"    **⚡ Disponibilité :** Immédiate  \n"
+        
+        # Liens
+        index_content += "    \n"
         if url_pdf:
-            index_content += f"* [{numero} - {libelle}]({numero}/) · [📄 PDF]({url_pdf}){{target=\"_blank\"}}\n"
+            index_content += f'    [📖 Voir les détails]({numero}/){{ .md-button }} [📄 Télécharger le PDF]({url_pdf}){{ .md-button .md-button--primary target="_blank" }}\n'
         else:
-            index_content += f"* [{numero} - {libelle}]({numero}/)\n"
+            index_content += f'    [📖 Voir les détails]({numero}/){{ .md-button }}\n'
     
     index_content += """
+## 📝 Comment postuler ?
+
+Pour candidater à un poste :
+
+1. **Consultez l'offre** qui vous intéresse ci-dessus
+2. **Téléchargez le PDF** pour connaître tous les détails et critères requis
+3. **Préparez votre dossier** de candidature selon les modalités indiquées dans l'AVP
+4. **Déposez votre candidature** avant la date limite auprès du service RH de l'OPT-NC
+
+💡 **Plus d'informations** : Rendez-vous sur le [site institutionnel OPT-NC](https://office.opt.nc/fr/emploi-et-carriere/postuler-lopt-nc/avp) pour connaître les modalités de candidature et les contacts RH.
+
+---
+
 ## 🔄 Mise à jour
 
 Les données sont mises à jour quotidiennement de manière automatique.
