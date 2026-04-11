@@ -19,10 +19,10 @@ Copyright &copy; 2026 OPT-NC<br>
 [project.theme]
 name = "material"
 language = "fr"
+logo = "assets/logo.png"
+favicon = "assets/logo.png"
 
 # Icônes du site
-icon.logo = "assets/logo.png"
-icon.favicon = "assets/logo.png"
 icon.repo = "lucide/github"
 
 # Options de navigation et recherche
