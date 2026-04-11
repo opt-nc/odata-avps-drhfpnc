@@ -30,9 +30,10 @@ Copyright &copy; 2026 OPT-NC<br>
     
     # Remplacer la section copyright
     import re
-    pattern = r'copyright = """[^"]*"""'
+    # Pattern pour capturer copyright = """...""" en multi-ligne
+    pattern = r'copyright = """.*?"""'
     
-    if re.search(pattern, content):
+    if re.search(pattern, content, flags=re.DOTALL):
         new_content = re.sub(pattern, new_copyright, content, flags=re.DOTALL)
         
         # Écrire le fichier mis à jour

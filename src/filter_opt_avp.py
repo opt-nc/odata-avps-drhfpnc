@@ -99,7 +99,7 @@ def process_pdfs_to_markdown(df, data_dir="data"):
             if os.path.exists(temp_pdf):
                 os.remove(temp_pdf)
             print(f"    Généré avec succès : {final_md_path}")
-            if output_files.get('images'):
+            if output_files and output_files.get('images'):
                 print(f"    Images extraites : {len(output_files['images'])}")
                 
         except Exception as e:
