@@ -81,7 +81,8 @@ def process_pdfs_to_markdown(df, data_dir="data"):
             rendered = converter(temp_pdf)
             
             # 3. Sauvegarde du Markdown et des images
-            output_files = save_output(rendered, final_md_path, data_dir)
+            # save_output attend: (rendered, output_dir, fname_base)
+            output_files = save_output(rendered, output_dir=data_dir, fname_base=numero)
             
             # 4. Ajouter un lien vers le PDF original en haut du fichier
             with open(final_md_path, 'r', encoding='utf-8') as f:
@@ -243,6 +244,18 @@ def generate_index_md(df):
     now = datetime.now(noumea_tz)
     date_mise_a_jour = now.strftime("%d/%m/%Y à %Hh%M")
     
+    # Calculer la répartition par corps/grade
+    corps_counts = df['libelle_corps_grade'].value_counts()
+    
+    # Générer le graphique Mermaid (pie chart)
+    mermaid_chart = "```mermaid\npie title Répartition des postes par corps/grade\n"
+    for corps, count in corps_counts.items():
+        if pd.notna(corps):
+            # Capitaliser le premier caractère pour un meilleur rendu
+            corps_label = str(corps).capitalize()
+            mermaid_chart += f'    "{corps_label}" : {count}\n'
+    mermaid_chart += "```"
+    
     index_content = f"""# AVPS OPT-NC
 
 Bienvenue sur le site des **Avis de Vacances de Poste** de l'Office des Postes et Télécommunications de Nouvelle-Calédonie.
@@ -252,6 +265,10 @@ Bienvenue sur le site des **Avis de Vacances de Poste** de l'Office des Postes e
 - **{nb_postes}** poste{'s' if nb_postes > 1 else ''} disponible{'s' if nb_postes > 1 else ''} actuellement
 - 📅 Dernière mise à jour : **{date_mise_a_jour}** (Nouméa)
 - 🔄 Prochaine mise à jour : demain à 00h00 (automatique)
+
+### 📈 Répartition par corps/grade
+
+{mermaid_chart}
 
 ---
 
