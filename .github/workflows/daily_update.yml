@@ -124,6 +124,12 @@ jobs:
           git checkout main
           git pull origin main
 
+      - name: Configure Git identity
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Create and push tag
         if: steps.check_changes.outputs.has_changes == 'true'
         env:
