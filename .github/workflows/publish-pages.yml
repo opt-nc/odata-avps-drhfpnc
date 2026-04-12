@@ -58,11 +58,17 @@ jobs:
       - name: Build site with Zensical
         run: |
           uv tool run zensical build --clean
+          echo "--- Contenu de data/ après génération ---"
+          ls -l data/feed.xml || echo "❌ feed.xml absent de data/"
           # Forcer la copie du flux RSS s'il a été généré
           if [ -f data/feed.xml ]; then
             cp data/feed.xml site/
             echo "✅ feed.xml copié dans site/"
+          else
+            echo "⚠️ data/feed.xml n'existe pas, impossible de le copier"
           fi
+          echo "--- Contenu de site/ après copie ---"
+          ls -l site/feed.xml || echo "❌ feed.xml absent de site/"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
