@@ -544,9 +544,9 @@ def generate_rss_feed(df):
     rss = '<?xml version="1.0" encoding="UTF-8" ?>\n'
     rss += '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">\n'
     rss += '<channel>\n'
-    rss += '  <title>AVPS OPT-NC - Nouvelles offres</title>\n'
+    rss += '  <title>OPT-NC : AVPS en cours</title>\n'
     rss += '  <link>https://opt-nc.github.io/avps/</link>\n'
-    rss += '  <description>Derniers avis de vacances de poste publiés par l\'OPT-NC</description>\n'
+    rss += '  <description>Avis de vacances de poste en cours et publiés par l\'OPT-NC</description>\n'
     rss += '  <language>fr</language>\n'
     rss += f'  <lastBuildDate>{datetime.datetime.now().strftime("%a, %d %b %Y %H:%M:%S +1100")}</lastBuildDate>\n'
     
@@ -556,6 +556,7 @@ def generate_rss_feed(df):
     for _, row in df_sorted.iterrows():
         numero = row.get('numero', '').replace("/", "_")
         libelle = row.get('libelle_emploi_rome', '')
+        libelle_poste = row.get('libelle_poste', '')
         direction = row.get('direction_libelle', '')
         date_pub = row.get('date_mis_en_ligne', '')
         
@@ -563,7 +564,7 @@ def generate_rss_feed(df):
         rss += f'    <title>{numero} - {libelle}</title>\n'
         rss += f'    <link>https://opt-nc.github.io/avps/{numero}/</link>\n'
         rss += f'    <guid isPermaLink="true">https://opt-nc.github.io/avps/{numero}/</guid>\n'
-        rss += f'    <description><![CDATA[Poste à la direction {direction}. Consultez les détails sur le site.]]></description>\n'
+        rss += f'    <description><![CDATA[{libelle_poste}]]></description>\n'
         if pd.notna(date_pub):
             try:
                 pub_obj = pd.to_datetime(date_pub)
