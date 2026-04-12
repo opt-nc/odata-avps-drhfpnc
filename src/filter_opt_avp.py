@@ -549,6 +549,11 @@ def generate_rss_feed(df):
     rss += '  <description>Avis de vacances de poste en cours et publiés par l\'OPT-NC</description>\n'
     rss += '  <language>fr</language>\n'
     rss += f'  <lastBuildDate>{datetime.datetime.now().strftime("%a, %d %b %Y %H:%M:%S +1100")}</lastBuildDate>\n'
+    rss += '  <image>\n'
+    rss += '    <url>https://opt-nc.github.io/avps/assets/logo.png</url>\n'
+    rss += '    <title>OPT-NC : AVPS en cours</title>\n'
+    rss += '    <link>https://opt-nc.github.io/avps/</link>\n'
+    rss += '  </image>\n'
     
     # Trier par date de mise en ligne décroissante
     df_sorted = df.sort_values('date_mis_en_ligne', ascending=False).head(20)
