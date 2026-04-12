@@ -30,6 +30,7 @@ name = "material"
 language = "fr"
 logo = "assets/logo.png"
 favicon = "assets/logo.png"
+custom_dir = "overrides"
 
 # Icônes du site
 icon.repo = "material/github"
