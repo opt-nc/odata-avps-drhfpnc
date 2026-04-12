@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 
 {% block extrahead %}
+  <!-- RSS Feed -->
+  <link rel="alternate" type="application/rss+xml" title="OPT-NC : AVPS en cours" href="{{ config.site_url }}feed.xml">
+  
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="{{ page.canonical_url }}">
