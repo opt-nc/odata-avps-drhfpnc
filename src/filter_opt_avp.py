@@ -459,12 +459,6 @@ Les données sont mises à jour quotidiennement de manière automatique.
     except Exception as e:
         print(f"⚠️ Erreur lors de la génération du flux RSS: {e}")
     
-    # --- GÉNÉRATION DU SITEMAP ---
-    try:
-        generate_sitemap(df)
-    except Exception as e:
-        print(f"⚠️ Erreur lors de la génération du sitemap: {e}")
-    
     # --- ARCHIVAGE DES ANCIENS AVPS ---
     try:
         archive_old_avps(df)
@@ -583,38 +577,6 @@ def generate_rss_feed(df):
     with open("data/feed.xml", "w", encoding="utf-8") as f:
         f.write(rss)
     print("✅ Flux RSS généré : data/feed.xml")
-
-def generate_sitemap(df):
-    """Génère un fichier sitemap.xml pour le SEO."""
-    import datetime
-    today = datetime.datetime.now().strftime("%Y-%m-%d")
-    
-    sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n'
-    sitemap += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-    
-    # Page d'accueil
-    sitemap += '  <url>\n'
-    sitemap += '    <loc>https://opt-nc.github.io/avps/</loc>\n'
-    sitemap += f'    <lastmod>{today}</lastmod>\n'
-    sitemap += '    <changefreq>daily</changefreq>\n'
-    sitemap += '    <priority>1.0</priority>\n'
-    sitemap += '  </url>\n'
-    
-    # Chaque AVP
-    for _, row in df.iterrows():
-        numero = row.get('numero_avp', '')
-        sitemap += '  <url>\n'
-        sitemap += f'    <loc>https://opt-nc.github.io/avps/{numero}/</loc>\n'
-        sitemap += f'    <lastmod>{today}</lastmod>\n'
-        sitemap += '    <changefreq>weekly</changefreq>\n'
-        sitemap += '    <priority>0.8</priority>\n'
-        sitemap += '  </url>\n'
-        
-    sitemap += '</urlset>'
-    
-    with open("data/sitemap.xml", "w", encoding="utf-8") as f:
-        f.write(sitemap)
-    print("✅ Sitemap généré : data/sitemap.xml")
 
 if __name__ == "__main__":
     main()
