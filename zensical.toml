@@ -10,6 +10,12 @@ repo_name = "opt-nc/avps"
 docs_dir = "data"
 site_dir = "site"
 
+# Métadonnées pour les réseaux sociaux (SEO & Social Preview)
+[project.extra]
+social_image = "assets/logo.png"
+twitter_card = "summary_large_image"
+twitter_site = "@OPT_NC"
+
 # Inclure le flux RSS dans le build final
 extra_files = ["feed.xml"]
 
