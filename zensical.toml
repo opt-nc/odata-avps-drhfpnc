@@ -10,6 +10,9 @@ repo_name = "opt-nc/avps"
 docs_dir = "data"
 site_dir = "site"
 
+# Inclure le flux RSS dans le build final
+static_assets = ["feed.xml"]
+
 copyright = """
 Copyright &copy; 2026 OPT-NC<br>
 <small>Dernière mise à jour : 12/04/2026 à 11:30 (Nouméa) | Commit : <a href="https://github.com/opt-nc/avps/commit/94e0383" target="_blank">94e0383</a></small><br>
