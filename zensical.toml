@@ -64,6 +64,16 @@ link = "https://opt-nc.github.io/avps/feed.xml"
 name = "Flux RSS des offres"
 
 [[project.extra.social]]
+icon = "fontawesome/brands/linkedin"
+link = "https://www.linkedin.com/company/opt-new-caledonia"
+name = "LinkedIn OPT-NC"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/x-twitter"
+link = "https://x.com/OPT_NC"
+name = "X (Twitter) OPT-NC"
+
+[[project.extra.social]]
 icon = "material/earth"
 link = "https://office.opt.nc/fr/emploi-et-carriere/postuler-lopt-nc/avp"
 name = "Site Institutionnel OPT-NC"
