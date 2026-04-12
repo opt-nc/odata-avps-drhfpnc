@@ -563,13 +563,35 @@ def generate_rss_feed(df):
         libelle = row.get('libelle_emploi_rome', '')
         libelle_poste = row.get('libelle_poste', '')
         direction = row.get('direction_libelle', '')
+        corps_grade = row.get('libelle_corps_grade', '')
         date_pub = row.get('date_mis_en_ligne', '')
+        date_cloture = row.get('date_cloture', '')
+        date_a_pourvoir_libelle = row.get('date_a_pourvoir_libelle', '')
+        url_pdf = row.get('url_pdf', '')
+        
+        # Construire une description enrichie
+        description = f'<p><strong>Poste :</strong> {libelle_poste}</p>\n'
+        if direction:
+            description += f'    <p><strong>Direction :</strong> {direction}</p>\n'
+        if corps_grade:
+            description += f'    <p><strong>Corps/Grade :</strong> {corps_grade}</p>\n'
+        if date_a_pourvoir_libelle:
+            description += f'    <p><strong>À pourvoir :</strong> {date_a_pourvoir_libelle}</p>\n'
+        if pd.notna(date_cloture):
+            try:
+                date_cloture_obj = pd.to_datetime(date_cloture)
+                date_cloture_fr = date_cloture_obj.strftime("%d/%m/%Y")
+                description += f'    <p><strong>Date de clôture :</strong> {date_cloture_fr}</p>\n'
+            except:
+                pass
+        if url_pdf:
+            description += f'    <p><a href="{url_pdf}">📄 Télécharger le PDF</a></p>'
         
         rss += '  <item>\n'
         rss += f'    <title>{numero} - {libelle}</title>\n'
         rss += f'    <link>https://opt-nc.github.io/avps/{numero}/</link>\n'
         rss += f'    <guid isPermaLink="true">https://opt-nc.github.io/avps/{numero}/</guid>\n'
-        rss += f'    <description><![CDATA[{libelle_poste}]]></description>\n'
+        rss += f'    <description><![CDATA[\n    {description}\n  ]]></description>\n'
         if pd.notna(date_pub):
             try:
                 pub_obj = pd.to_datetime(date_pub)
