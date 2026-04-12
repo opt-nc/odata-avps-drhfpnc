@@ -144,6 +144,8 @@ def main():
     
     # Renommage des colonnes (Dictionnaire complet)
     renames = {
+        'numeroavp': 'numero_avp',
+        'datepublicationavp': 'date_publication_avp',
         'libelleposte': 'libelle_poste',
         'libelleemploirome': 'libelle_emploi_rome',
         'codeemploirome': 'code_emploi_rome',
