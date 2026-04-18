@@ -8,7 +8,7 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="{{ page.canonical_url }}">
   <meta property="og:title" content="{% if page.title %}{{ page.title }} - {% endif %}{{ config.site_name }}">
-  <meta property="og:description" content="{% if page.meta.description %}{{ page.meta.description }}{% else %}{{ config.site_description }}{% endif %}">
+  <meta property="og:description" content="{% if page.meta and page.meta.description %}{{ page.meta.description }}{% elif config and config.site_description %}{{ config.site_description }}{% endif %}">
   <meta property="og:image" content="{{ config.site_url }}assets/logo.png">
   <meta property="og:locale" content="fr_FR">
   
@@ -16,7 +16,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="{{ page.canonical_url }}">
   <meta name="twitter:title" content="{% if page.title %}{{ page.title }} - {% endif %}{{ config.site_name }}">
-  <meta name="twitter:description" content="{% if page.meta.description %}{{ page.meta.description }}{% else %}{{ config.site_description }}{% endif %}">
+  <meta name="twitter:description" content="{% if page.meta and page.meta.description %}{{ page.meta.description }}{% elif config and config.site_description %}{{ config.site_description }}{% endif %}">
   <meta name="twitter:image" content="{{ config.site_url }}assets/logo.png">
   <meta name="twitter:site" content="@OPT_NC">
   <meta name="twitter:creator" content="@OPT_NC">

@@ -243,6 +243,12 @@ def generate_index_md(df):
     """Génère un fichier index.md avec la liste des AVPs."""
     print("Génération de index.md...")
     
+    # Supprimer le sitemap.xml obsolète s'il existe dans data/
+    # Zensical ou le processus de build doit gérer cela proprement
+    if os.path.exists("data/sitemap.xml"):
+        os.remove("data/sitemap.xml")
+        print("🗑️ sitemap.xml obsolète supprimé")
+
     # Calculer les statistiques
     from datetime import datetime
     import pytz
@@ -252,18 +258,27 @@ def generate_index_md(df):
     now = datetime.now(noumea_tz)
     date_mise_a_jour = now.strftime("%d/%m/%Y à %Hh%M")
     
-    # Calculer la répartition par corps/grade
-    corps_counts = df['libelle_corps_grade'].value_counts()
-    
-    # Générer le graphique Mermaid (pie chart)
-    mermaid_pie = "```mermaid\npie title Répartition des postes par corps/grade\n"
-    for corps, count in corps_counts.items():
-        if pd.notna(corps):
-            # Capitaliser le premier caractère pour un meilleur rendu
-            corps_label = str(corps).capitalize()
-            mermaid_pie += f'    "{corps_label}" : {count}\n'
-    mermaid_pie += "```"
-    
+    # Section statistiques (uniquement si postes disponibles)
+    stats_section = ""
+    if nb_postes > 0:
+        # Calculer la répartition par corps/grade
+        corps_counts = df['libelle_corps_grade'].value_counts()
+        
+        # Générer le graphique Mermaid (pie chart)
+        mermaid_pie = "```mermaid\npie title Répartition des postes par corps/grade\n"
+        for corps, count in corps_counts.items():
+            if pd.notna(corps):
+                corps_label = str(corps).capitalize()
+                mermaid_pie += f'    "{corps_label}" : {count}\n'
+        mermaid_pie += "```"
+        
+        stats_section = f"""### 📈 Répartition par corps/grade
+
+{mermaid_pie}
+"""
+    else:
+        stats_section = "!!! info \"Information\"\n    Il n'y a aucun avis de vacance de poste disponible pour le moment."
+
     index_content = f"""# AVPS OPT-NC
 
 Bienvenue sur le site des **Avis de Vacances de Poste** de l'Office des Postes et Télécommunications de Nouvelle-Calédonie.
@@ -274,14 +289,15 @@ Bienvenue sur le site des **Avis de Vacances de Poste** de l'Office des Postes e
 - 📅 Dernière mise à jour : **{date_mise_a_jour}** (Nouméa)
 - 🔄 Prochaine mise à jour : demain à 00h00 (automatique)
 
-### 📈 Répartition par corps/grade
-
-{mermaid_pie}
+{stats_section}
 
 ---
 
 ## 📋 Postes disponibles
+"""
 
+    if nb_postes > 0:
+        index_content += """
 Cette page recense les avis de vacances de poste publiés par l'OPT-NC, issus du dataset [avis-de-vacances-de-poste-avp-drhfpnc](https://data.gouv.nc/explore/dataset/avis-de-vacances-de-poste-avp-drhfpnc/information) disponible sur data.gouv.nc.
 
 👉 **Retrouvez également les AVP sur le [site institutionnel OPT-NC](https://office.opt.nc/fr/emploi-et-carriere/postuler-lopt-nc/avp)**
@@ -289,96 +305,95 @@ Cette page recense les avis de vacances de poste publiés par l'OPT-NC, issus du
 ### Liste des AVP disponibles
 
 """
-    
-    # Trier par numéro de référence décroissant
-    df_sorted = df.sort_values('numero', ascending=False)
-    
-    for _, row in df_sorted.iterrows():
-        numero = row.get('numero', '')
-        libelle = row.get('libelle_poste', 'Poste disponible')
-        url_pdf = row.get('url_pdf', '')
-        direction_acronyme = row.get('direction_acronyme', '')
-        direction_libelle = row.get('direction_libelle', '')
-        lieu_travail = row.get('lieu_travail', '')
-        date_a_pourvoir_libelle = row.get('date_a_pourvoir_libelle', '')
-        date_cloture = row.get('date_cloture', '')
-        date_publication = row.get('date_publication_avp', '')
-        corps_grade = row.get('libelle_corps_grade', '')
+        # Trier par numéro de référence décroissant
+        df_sorted = df.sort_values('numero', ascending=False)
         
-        # Limiter la longueur du libellé pour le titre
-        libelle_court = libelle
-        if len(libelle) > 80:
-            libelle_court = libelle[:77] + "..."
-        
-        # Badge de disponibilité dans le titre
-        badge_dispo = ""
-        if str(date_a_pourvoir_libelle).upper() == "IMMEDIATEMENT":
-            badge_dispo = " 🟢"
-        
-        # --- CALCUL DES NOUVEAUX BADGES ---
-        badges_info = ""
-        now = pd.Timestamp.now()
-        
-        # Badge NOUVEAU (si publié il y a moins de 3 jours)
-        if pd.notna(date_publication):
-            try:
-                pub_date = pd.to_datetime(date_publication)
-                if (now - pub_date).days <= 3:
-                    badges_info += ' <span class="md-tag md-tag--new">NOUVEAU</span>'
-            except:
-                pass
-                
-        # Badge COMPTE À REBOURS (jours restants)
-        if pd.notna(date_cloture):
-            try:
-                cloture_date = pd.to_datetime(date_cloture)
-                jours_restants = (cloture_date - now).days
-                if jours_restants <= 7 and jours_restants >= 0:
-                    badges_info += f' <span class="md-tag md-tag--urgent">J-{jours_restants}</span>'
-                elif jours_restants < 0:
-                    badges_info += ' <span class="md-tag md-tag--closed">CLOS</span>'
-            except:
-                pass
-        
-        # Créer une carte admonition avec les badges
-        index_content += f'\n!!! info "{numero} - {libelle_court}{badge_dispo}{badges_info}"\n'
-        
-        # Direction
-        if pd.notna(direction_libelle) and direction_libelle:
-            index_content += f"    **🏢 Direction :** {direction_libelle}"
-            if pd.notna(direction_acronyme) and direction_acronyme:
-                index_content += f" ({direction_acronyme})"
-            index_content += "  \n"
-        elif pd.notna(direction_acronyme) and direction_acronyme:
-            index_content += f"    **🏢 Direction :** {direction_acronyme}  \n"
-        
-        # Lieu
-        if pd.notna(lieu_travail) and lieu_travail:
-            index_content += f"    **📍 Lieu :** {lieu_travail}  \n"
-        
-        # Date limite
-        if pd.notna(date_cloture) and date_cloture:
-            try:
-                date_obj = pd.to_datetime(date_cloture)
-                date_formatee = date_obj.strftime("%d/%m/%Y")
-                index_content += f"    **📅 Date limite :** {date_formatee}  \n"
-            except:
-                pass
-        
-        # Corps/Grade
-        if pd.notna(corps_grade) and corps_grade:
-            index_content += f"    **💼 Corps :** {corps_grade.capitalize()}  \n"
-        
-        # Disponibilité
-        if str(date_a_pourvoir_libelle).upper() == "IMMEDIATEMENT":
-            index_content += f"    **⚡ Disponibilité :** Immédiate  \n"
-        
-        # Liens
-        index_content += "    \n"
-        if url_pdf:
-            index_content += f'    [📖 Voir les détails]({numero}/){{ .md-button }} [📄 Télécharger le PDF]({url_pdf}){{ .md-button .md-button--primary target="_blank" }}\n'
-        else:
-            index_content += f'    [📖 Voir les détails]({numero}/){{ .md-button }}\n'
+        for _, row in df_sorted.iterrows():
+            numero = row.get('numero', '')
+            libelle = row.get('libelle_poste', 'Poste disponible')
+            url_pdf = row.get('url_pdf', '')
+            direction_acronyme = row.get('direction_acronyme', '')
+            direction_libelle = row.get('direction_libelle', '')
+            lieu_travail = row.get('lieu_travail', '')
+            date_a_pourvoir_libelle = row.get('date_a_pourvoir_libelle', '')
+            date_cloture = row.get('date_cloture', '')
+            date_publication = row.get('date_publication_avp', '')
+            corps_grade = row.get('libelle_corps_grade', '')
+            
+            # Limiter la longueur du libellé pour le titre
+            libelle_court = libelle
+            if len(libelle) > 80:
+                libelle_court = libelle[:77] + "..."
+            
+            # Badge de disponibilité dans le titre
+            badge_dispo = ""
+            if str(date_a_pourvoir_libelle).upper() == "IMMEDIATEMENT":
+                badge_dispo = " 🟢"
+            
+            # --- CALCUL DES NOUVEAUX BADGES ---
+            badges_info = ""
+            now = pd.Timestamp.now()
+            
+            # Badge NOUVEAU (si publié il y a moins de 3 jours)
+            if pd.notna(date_publication):
+                try:
+                    pub_date = pd.to_datetime(date_publication)
+                    if (now - pub_date).days <= 3:
+                        badges_info += ' <span class="md-tag md-tag--new">NOUVEAU</span>'
+                except:
+                    pass
+                    
+            # Badge COMPTE À REBOURS (jours restants)
+            if pd.notna(date_cloture):
+                try:
+                    cloture_date = pd.to_datetime(date_cloture)
+                    jours_restants = (cloture_date - now).days
+                    if jours_restants <= 7 and jours_restants >= 0:
+                        badges_info += f' <span class="md-tag md-tag--urgent">J-{jours_restants}</span>'
+                    elif jours_restants < 0:
+                        badges_info += ' <span class="md-tag md-tag--closed">CLOS</span>'
+                except:
+                    pass
+            
+            # Créer une carte admonition avec les badges
+            index_content += f'\n!!! info "{numero} - {libelle_court}{badge_dispo}{badges_info}"\n'
+            
+            # Direction
+            if pd.notna(direction_libelle) and direction_libelle:
+                index_content += f"    **🏢 Direction :** {direction_libelle}"
+                if pd.notna(direction_acronyme) and direction_acronyme:
+                    index_content += f" ({direction_acronyme})"
+                index_content += "  \n"
+            elif pd.notna(direction_acronyme) and direction_acronyme:
+                index_content += f"    **🏢 Direction :** {direction_acronyme}  \n"
+            
+            # Lieu
+            if pd.notna(lieu_travail) and lieu_travail:
+                index_content += f"    **📍 Lieu :** {lieu_travail}  \n"
+            
+            # Date limite
+            if pd.notna(date_cloture) and date_cloture:
+                try:
+                    date_obj = pd.to_datetime(date_cloture)
+                    date_formatee = date_obj.strftime("%d/%m/%Y")
+                    index_content += f"    **📅 Date limite :** {date_formatee}  \n"
+                except:
+                    pass
+            
+            # Corps/Grade
+            if pd.notna(corps_grade) and corps_grade:
+                index_content += f"    **💼 Corps :** {corps_grade.capitalize()}  \n"
+            
+            # Disponibilité
+            if str(date_a_pourvoir_libelle).upper() == "IMMEDIATEMENT":
+                index_content += f"    **⚡ Disponibilité :** Immédiate  \n"
+            
+            # Liens
+            index_content += "    \n"
+            if url_pdf:
+                index_content += f'    [📖 Voir les détails]({numero}/){{ .md-button }} [📄 Télécharger le PDF]({url_pdf}){{ .md-button .md-button--primary target="_blank" }}\n'
+            else:
+                index_content += f'    [📖 Voir les détails]({numero}/){{ .md-button }}\n'
     
     index_content += """
 ## 📝 Comment postuler ?
