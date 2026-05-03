@@ -5,7 +5,7 @@ Bienvenue sur le site des **Avis de Vacances de Poste** de l'Office des Postes e
 ## 📊 En bref
 
 - **0** poste disponible actuellement
-- 📅 Dernière mise à jour : **02/05/2026 à 11h38** (Nouméa)
+- 📅 Dernière mise à jour : **03/05/2026 à 11h26** (Nouméa)
 - 🔄 Prochaine mise à jour : demain à 00h00 (automatique)
 
 !!! info "Information"
